@@ -18,5 +18,12 @@ public class BookController {
         this.modelMapper = modelMapper;
     }
 
-  
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public BookDTO create(@RequestBody BookDTO dto) {
+        Book book = modelMapper.map(dto, Book.class);
+        book = bookService.save(book);
+
+        return modelMapper.map(book, BookDTO.class);
+    }
 }
