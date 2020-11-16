@@ -21,6 +21,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.util.Optional;
+
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -95,11 +97,47 @@ public class BookControllerTest {
                 .andExpect( status().isBadRequest() )
                 .andExpect( jsonPath("errors", hasSize(1)) )
                 .andExpect( jsonPath("errors[0]").value(msg) ) ;
+    }
 
+    @Test
+    @DisplayName("Deve obter informações de um livro")
+    public void getBookDetailsTest() throws Exception {
+        Long id = 1L;
+        Book book = createBookWithID(id);
+        BDDMockito.given(service.getById(id)).willReturn(Optional.of(book));
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .get(BOOK_API.concat("/" + id))
+                .accept(MediaType.APPLICATION_JSON);
+
+        mvc.perform(request)
+            .andExpect(status().isOk())
+            .andExpect( jsonPath("id").value(book.getId()) )
+            .andExpect( jsonPath("title").value(book.getTitle()) )
+            .andExpect( jsonPath("author").value(book.getAuthor()) )
+            .andExpect( jsonPath("isbn").value(book.getIsbn()) );
+    }
+
+    @Test
+    @DisplayName("Deve retornar resource not found quando o livro não for encontrado")
+    public void bookNotFoundTest() throws Exception {
+        long id = 1;
+
+        BDDMockito.given(service.getById(Mockito.any())).willReturn(Optional.empty());
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .get(BOOK_API.concat("/" + id))
+                .accept(MediaType.APPLICATION_JSON);
+
+        mvc.perform(request)
+            .andExpect(status().isNotFound());
     }
 
     private BookDTO createNewBook() {
         return BookDTO.builder().author("Jorge").title("Vingadores").isbn("152478").build();
     }
 
+    private Book createBookWithID(Long id) {
+        return Book.builder().id(id).author("Jorge").title("Vingadores").isbn("152478").build();
+    }
 }
