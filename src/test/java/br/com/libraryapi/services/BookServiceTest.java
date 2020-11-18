@@ -15,6 +15,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
@@ -61,6 +63,33 @@ public class BookServiceTest {
         Mockito.verify(repository, Mockito.never()).save(book);
     }
 
+    @Test
+    @DisplayName("Deve obter um livro por ID")
+    public void getByIDTest() {
+        Long id = 1L;
+        Book book = createValidBook();
+        book.setId(id);
+        Mockito.when(repository.findById(id)).thenReturn(Optional.of(book));
+
+        Optional<Book> foundBook = service.getById(id);
+
+        assertThat(foundBook.isPresent()).isTrue();
+        assertThat(foundBook.get().getId()).isEqualTo(book.getId());
+        assertThat(foundBook.get().getAuthor()).isEqualTo(book.getAuthor());
+        assertThat(foundBook.get().getTitle()).isEqualTo(book.getTitle());
+        assertThat(foundBook.get().getIsbn()).isEqualTo(book.getIsbn());
+    }
+
+    @Test
+    @DisplayName("Deve retornar vazio ao quando não econtrado livro com id passado")
+    public void bookNotFoundByIDTest() {
+        Long id = 1L;
+        Mockito.when(repository.findById(id)).thenReturn(Optional.empty());
+
+        Optional<Book> book = service.getById(id);
+
+        assertThat(book.isPresent()).isFalse();
+    }
 
     private Book createValidBook() {
         return Book.builder().isbn("123").author("Zé").title("Homem de Ferro").build();
