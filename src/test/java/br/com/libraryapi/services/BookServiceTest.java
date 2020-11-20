@@ -1,11 +1,10 @@
 package br.com.libraryapi.services;
 
 import br.com.libraryapi.api.services.BookService;
+import br.com.libraryapi.api.services.impl.BookServiceImpl;
 import br.com.libraryapi.exceptions.BusinessException;
 import br.com.libraryapi.model.entity.Book;
-import br.com.libraryapi.api.services.impl.BookServiceImpl;
 import br.com.libraryapi.model.repositories.BookRepository;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +17,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
@@ -55,7 +56,7 @@ public class BookServiceTest {
         Book book = createValidBook();
         Mockito.when( repository.existsByIsbn(Mockito.anyString()) ).thenReturn(true);
 
-        Throwable exception = Assertions.catchThrowable( () -> service.save(book) );
+        Throwable exception = catchThrowable( () -> service.save(book) );
 
         assertThat(exception)
                 .isInstanceOf(BusinessException.class)
@@ -89,6 +90,58 @@ public class BookServiceTest {
         Optional<Book> book = service.getById(id);
 
         assertThat(book.isPresent()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Deve atualizar livro com sucesso")
+    public void updateBookTest() {
+        Book bookWillBeUpdated = createValidBook();
+        bookWillBeUpdated.setId(1L);
+        Book bookAfterUpdated = Book.builder().id(1L).title("Title Fake").author("Author Fake").isbn("4857").build();
+        Mockito.when(repository.save(bookWillBeUpdated)).thenReturn(bookAfterUpdated);
+
+        Book updatedBook = service.update(bookWillBeUpdated);
+
+        assertThat(updatedBook.getId()).isEqualTo(bookAfterUpdated.getId());
+        assertThat(updatedBook.getAuthor()).isEqualTo(bookAfterUpdated.getAuthor());
+        assertThat(updatedBook.getTitle()).isEqualTo(bookAfterUpdated.getTitle());
+        assertThat(updatedBook.getIsbn()).isEqualTo(bookAfterUpdated.getIsbn());
+    }
+
+    @Test
+    @DisplayName("Deve lançar erro quando passar um livro null para atualizar")
+    public void updateInvalidBookTest() {
+        Book book = Book.builder().build();
+
+        Throwable exception = catchThrowable( () -> service.update(book) );
+
+        assertThat(exception)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Book id can't be null");
+        Mockito.verify(repository, Mockito.never()).save(book);
+    }
+
+    @Test
+    @DisplayName("Deve excluir livro com sucesso")
+    public void deleteBookTest() {
+        Book book = Book.builder().id(1L).isbn("123").title("Vingadores").author("Fulado").build();
+
+        assertDoesNotThrow( () -> service.delete(book) ); ;
+
+        Mockito.verify(repository, Mockito.times(1)).delete(book);
+    }
+
+    @Test
+    @DisplayName("Deve lançar erro quando passar um livro vazio para deleção")
+    public void deleteInvalidBookTest() {
+        Book book = Book.builder().build();
+
+        Throwable exception = catchThrowable( () -> service.delete(book) );
+
+        assertThat(exception)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Book id can't be null");
+        Mockito.verify(repository, Mockito.never()).delete(book);
     }
 
     private Book createValidBook() {
