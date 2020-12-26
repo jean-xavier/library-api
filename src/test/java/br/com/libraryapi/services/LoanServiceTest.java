@@ -10,11 +10,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -85,5 +87,49 @@ public class LoanServiceTest {
                 .hasMessage("Book already loaned");
 
         verify(repository, never()).save(savingLoan);
+    }
+
+    @Test
+    @DisplayName("Deve obter as informações de um emprestimo pelo ID")
+    public void getLoanDetailsTest() {
+        Long id = 1L;
+        Loan loan = Loan.builder()
+                .id(id)
+                .loanDate(LocalDate.now())
+                .customer("Fulado")
+                .book(Book.builder().id(id).build())
+                .build();
+
+        Mockito.when(repository.findById(id)).thenReturn(Optional.of(loan));
+
+        Optional<Loan> result = service.getById(id);
+
+        assertThat(result.isPresent()).isTrue();
+        assertThat(result.get().getId()).isEqualTo(loan.getId());
+        assertThat(result.get().getCustomer()).isEqualTo(loan.getCustomer());
+        assertThat(result.get().getBook()).isEqualTo(loan.getBook());
+        assertThat(result.get().getLoanDate()).isEqualTo(loan.getLoanDate());
+
+        verify(repository).findById(id);
+    }
+
+    @Test
+    @DisplayName("Deve atualizar emprestimo")
+    public void updateLoanTest() {
+        Long id = 1L;
+        Loan loan = Loan.builder()
+                .id(id)
+                .loanDate(LocalDate.now())
+                .customer("Fulado")
+                .returned(true)
+                .book(Book.builder().id(id).build())
+                .build();
+
+        Mockito.when(repository.save(loan)).thenReturn(loan);
+
+        Loan updatedLoan = service.update(loan);
+
+        assertThat(updatedLoan.getReturned()).isTrue();
+        verify(repository).save(loan);
     }
 }
