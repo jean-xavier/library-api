@@ -39,7 +39,7 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    public Page<Loan> find(LoanFilterDTO any, Pageable any1) {
-        return null;
+    public Page<Loan> find(LoanFilterDTO filter, Pageable pageable) {
+        return repository.findByBookIsbnOrCustomer(filter.getIsbn(), filter.getCustomer(), pageable);
     }
 }
