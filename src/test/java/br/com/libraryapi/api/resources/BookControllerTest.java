@@ -2,6 +2,7 @@ package br.com.libraryapi.api.resources;
 
 import br.com.libraryapi.api.dto.BookDTO;
 import br.com.libraryapi.api.services.BookService;
+import br.com.libraryapi.api.services.LoanService;
 import br.com.libraryapi.exceptions.BusinessException;
 import br.com.libraryapi.model.entity.Book;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,6 +45,9 @@ public class BookControllerTest {
 
     @MockBean
     BookService service;
+
+    @MockBean
+    LoanService loanService;
 
     @Test
     @DisplayName("Deve criar um livro com sucesso")
