@@ -8,12 +8,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -61,5 +63,33 @@ public class LoanRepositoryTest {
         assertThat(result.getPageable().getPageSize()).isEqualTo(10);
         assertThat(result.getPageable().getPageNumber()).isEqualTo(0);
         assertThat(result.getTotalElements()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("Deve obter empréstimos cuja data do emprestimo seja menor ou igual a três dias atrás e não retornados")
+    public void findByLoanDateLessThanAndNotReturnedTest() {
+        Book book = Book.builder().isbn("123456").author("Fulano").title("Em busca de Fulado").build();
+        entityManager.persist(book);
+
+        Loan loan = Loan.builder().loanDate(LocalDate.now().minusDays(5)).customerEmail("fulano@gmail.com").customer("Fulano").book(book).build();
+        entityManager.persist(loan);
+
+        List<Loan> loans = repository.findByLoanDateLessThanAndNotReturned(LocalDate.now().minusDays(4));
+
+        assertThat(loans).hasSize(1).contains(loan);
+    }
+
+    @Test
+    @DisplayName("Deve retornar vazio quando não houver emprestimos atrasados.")
+    public void notFindByLoanDateLessThanAndNotReturnedTest() {
+        Book book = Book.builder().isbn("123456").author("Fulano").title("Em busca de Fulado").build();
+        entityManager.persist(book);
+
+        Loan loan = Loan.builder().loanDate(LocalDate.now()).customerEmail("fulano@gmail.com").customer("Fulano").book(book).build();
+        entityManager.persist(loan);
+
+        List<Loan> loans = repository.findByLoanDateLessThanAndNotReturned(LocalDate.now().minusDays(4));
+
+        assertThat(loans).isEmpty();
     }
 }
