@@ -28,10 +28,10 @@ public class LoanController {
     private final LoanService loanService;
     private final ModelMapper modelMapper;
 
-    public LoanController(BookService bookService, LoanService loanService) {
+    public LoanController(BookService bookService, LoanService loanService, ModelMapper modelMapper) {
         this.bookService = bookService;
         this.loanService = loanService;
-        modelMapper = new ModelMapper();
+        this.modelMapper = modelMapper;
     }
 
     @PostMapping
@@ -44,6 +44,7 @@ public class LoanController {
         Loan loan = Loan.builder().
                 book(book)
                 .customer(dto.getCustomer())
+                .customerEmail(dto.getEmail())
                 .loanDate(LocalDate.now())
                 .build();
 
