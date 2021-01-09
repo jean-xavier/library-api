@@ -57,8 +57,9 @@ public class LoanControllerTest {
     public void createLoanTest() throws Exception {
         String isbn = "123";
         String customer = "Fulano";
+        String email = "jean@gmail.com";
 
-        LoanDTO dto = LoanDTO.builder().isbn(isbn).customer(customer).build();
+        LoanDTO dto = LoanDTO.builder().isbn(isbn).email(email).customer(customer).build();
         String json = new ObjectMapper().writeValueAsString(dto);
 
         Book book = Book.builder().id(1L).isbn(isbn).build();
