@@ -52,4 +52,12 @@ public class LoanServiceImpl implements LoanService {
     public Page<Loan> getLoansByBook(Book book, Pageable pageable) {
         return repository.findByBook(book, pageable);
     }
+
+    @Override
+    public List<Loan> getAllLateLoans() {
+        final int loanDays = 4;
+        final LocalDate threeDaysAgo = LocalDate.now().minusDays(loanDays);
+
+        return repository.findByLoanDateLessThanAndNotReturned(threeDaysAgo);
+    }
 }

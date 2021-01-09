@@ -21,4 +21,6 @@ public interface LoanService {
     Page<Loan> find(LoanFilterDTO filter, Pageable page);
 
     Page<Loan> getLoansByBook(Book book, Pageable pageable);
+
+    List<Loan> getAllLateLoans();
 }
